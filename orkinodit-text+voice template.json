@@ -1,0 +1,884 @@
+{
+  "name": "orkinodit-text+voice template",
+  "nodes": [
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        752,
+        352
+      ],
+      "id": "79e0ea56-235f-4637-8ea0-978eff81f0c4",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Merge').item.json.chatid}}",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1056,
+        720
+      ],
+      "id": "fef14822-8ff8-4ac8-b5f4-8fdbe07432e5",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "text",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        96,
+        560
+      ],
+      "id": "07f6e9ac-546d-4692-8749-992944081479",
+      "name": "Webhook",
+      "webhookId": "3bf29de2-e051-46a4-b389-a29e4ab1d086"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ba5d6e9b-842b-444e-89f4-3316ddfccf67",
+              "name": "input",
+              "value": "={{ $json.body.text }}",
+              "type": "string"
+            },
+            {
+              "id": "ed34d471-0798-4bbc-9eec-5587a45acfdc",
+              "name": "chatid",
+              "value": "={{ $json.body.chatId }}",
+              "type": "string"
+            },
+            {
+              "id": "b4dfe200-8639-46bd-b0d6-402078c18b43",
+              "name": "type",
+              "value": "text to text",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        592
+      ],
+      "id": "2df5bf8a-dd7a-4f0a-8581-d9ada2ff6981",
+      "name": "chat input2"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        2032,
+        96
+      ],
+      "id": "ad21e517-2cf3-4693-a499-a82a5f8ac813",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "233c1c93-0a52-49d8-8a85-5008df5a2baf",
+              "name": "output",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1584,
+        112
+      ],
+      "id": "ef6b1cea-25a3-4966-8f29-19c81c9defe5",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "voice-to-text",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        96,
+        352
+      ],
+      "id": "8995c84d-783b-4857-8755-2a7754c95799",
+      "name": "Webhook1",
+      "webhookId": "b72a1608-00e3-4ad1-8fd5-73baa4717ee2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ba5d6e9b-842b-444e-89f4-3316ddfccf67",
+              "name": "input",
+              "value": "={{ $json.segments[0].text }}",
+              "type": "string"
+            },
+            {
+              "id": "ed34d471-0798-4bbc-9eec-5587a45acfdc",
+              "name": "chatid",
+              "value": "={{ $('Webhook1').item.json.body.chatId }}",
+              "type": "string"
+            },
+            {
+              "id": "b4dfe200-8639-46bd-b0d6-402078c18b43",
+              "name": "type",
+              "value": "voice-to-text",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        528,
+        352
+      ],
+      "id": "eb28242b-8a99-4677-b079-de154f63b3be",
+      "name": "chat input3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/audio/transcriptions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "groqApi",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "whisper-large-v3-turbo"
+            },
+            {
+              "name": "response_format",
+              "value": "verbose_json"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "audio"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        352
+      ],
+      "id": "372cc771-c955-4400-a82f-68afcadf9252",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ltW1FACJTfIPmoVR",
+          "name": "Header Auth account"
+        },
+        "httpBearerAuth": {
+          "id": "v0awOrozYJizAAvS",
+          "name": "Bearer Auth account"
+        },
+        "groqApi": {
+          "id": "dEASfqzxCW8mJcmP",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "voice-to-voice",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        96,
+        160
+      ],
+      "id": "2e79856c-0b23-4373-b3bb-536c84072e9b",
+      "name": "Webhook2",
+      "webhookId": "78c8ed5e-0ccb-4577-86cc-62487b783b86"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/audio/transcriptions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "groqApi",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "whisper-large-v3-turbo"
+            },
+            {
+              "name": "response_format",
+              "value": "verbose_json"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "audio"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        160
+      ],
+      "id": "8b3ad595-dbc3-4304-8ba5-4b30acbc1d42",
+      "name": "HTTP Request2",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ltW1FACJTfIPmoVR",
+          "name": "Header Auth account"
+        },
+        "httpBearerAuth": {
+          "id": "v0awOrozYJizAAvS",
+          "name": "Bearer Auth account"
+        },
+        "groqApi": {
+          "id": "dEASfqzxCW8mJcmP",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ba5d6e9b-842b-444e-89f4-3316ddfccf67",
+              "name": "input",
+              "value": "={{ $json.segments[0].text }}",
+              "type": "string"
+            },
+            {
+              "id": "ed34d471-0798-4bbc-9eec-5587a45acfdc",
+              "name": "chatid",
+              "value": "={{ $('Webhook2').item.json.body.chatId }}",
+              "type": "string"
+            },
+            {
+              "id": "b4dfe200-8639-46bd-b0d6-402078c18b43",
+              "name": "type",
+              "value": "voice-to-voice",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        528,
+        128
+      ],
+      "id": "c94d21bf-b9ce-4da0-b75d-96224ef4a0b9",
+      "name": "chat input5"
+    },
+    {
+      "parameters": {
+        "respondWith": "binary",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        2032,
+        352
+      ],
+      "id": "5af765a7-ea24-4afe-a755-60ae20de943e",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "233c1c93-0a52-49d8-8a85-5008df5a2baf",
+              "name": "output",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1584,
+        352
+      ],
+      "id": "d226beff-2d13-448f-952f-bcae23a97ca2",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        2032,
+        592
+      ],
+      "id": "102c3ab6-67ac-4b22-84a8-96d624a89aef",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "233c1c93-0a52-49d8-8a85-5008df5a2baf",
+              "name": "output",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        576
+      ],
+      "id": "3e5fe2c4-bb20-4d69-8cfd-c03c4cceaf3a",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/audio/speech",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "groqApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "playai-tts"
+            },
+            {
+              "name": "voice",
+              "value": "Atlas-PlayAI"
+            },
+            {
+              "name": "input",
+              "value": "={{ $json.output }}"
+            },
+            {
+              "name": "response_format",
+              "value": "mp3"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1808,
+        352
+      ],
+      "id": "97342918-56a9-47c6-980c-5ffa7e1e54bf",
+      "name": "HTTP Request3",
+      "credentials": {
+        "groqApi": {
+          "id": "dEASfqzxCW8mJcmP",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## HTTP input\n",
+        "height": 760
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "353a17aa-b5ac-42c4-931d-5c708b49f804",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## convert Voice to text \nusing groq api.",
+        "height": 540,
+        "width": 432,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        288,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "75c80bf4-eeab-45b6-acd0-30e5857b23af",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## convert text to voice ",
+        "height": 288,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1728,
+        256
+      ],
+      "typeVersion": 1,
+      "id": "5993a4cd-dca9-43be-9376-2f2a9fbd5ef4",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## HTTP response",
+        "height": 760
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1984,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "ab347890-2862-44d4-bcdd-df15c06cc5b1",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.input }}",
+        "options": {
+          "systemMessage": "=You are an AI assistant that speaks in a concise, intelligent, and efficient manner, similar to JARVIS from Iron Man.\n\nYour goal is to respond with short, direct, and clear answers — no fluff, no long paragraphs. Every message should feel sharp, intentional, and minimal.\n\nDo not explain things unless directly asked. Never expand on a topic unless requested. Avoid repeating information.\n\ntools :\ncan call airtabel search it will return all task.\nand also ther is a create task tool give task name as parameter.\n\nYou can call the Task Agent to manage tasks.\nAsk it to search, create, or update tasks as needed.\nDo not expose task IDs to the user.\nShow task lists in clean bullet format only.\nConfirm updates with short success messages.\n\nAdjust responses based on mode: now in {{ $json.type }}\nSend text → Receive text: reply normally in text.\nSend voice → Receive text: reply in concise, clear text (speech-friendly).\nSend voice → Receive voice: reply with short, natural spoken-style text suitable for TTS."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        944,
+        320
+      ],
+      "id": "57d0707f-971f-4fd8-8776-a37b6922f4fc",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "012c1001-6884-4799-b9d1-27d1a06aaab9",
+                    "leftValue": "={{ $('Merge').item.json.type }}",
+                    "rightValue": "voice-to-text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "voice to text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0127351a-421c-4646-bc4d-688425116691",
+                    "leftValue": "={{ $('Merge').item.json.type }}",
+                    "rightValue": "voice-to-voice",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "voice to voice"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0c8e9c53-d641-484a-9abb-fc0c06e0cffc",
+                    "leftValue": "={{ $('Merge').item.json.type }}",
+                    "rightValue": "text to text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1312,
+        320
+      ],
+      "id": "ce379353-5d4f-48a9-bba7-72c2ddedac98",
+      "name": "Switch-out"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        720,
+        960
+      ],
+      "id": "12edc2e3-86e0-4dbf-8b34-19205a050b32",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "dEASfqzxCW8mJcmP",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## voice input",
+        "height": 368,
+        "width": 208,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        16,
+        112
+      ],
+      "typeVersion": 1,
+      "id": "1bfa9fd9-e735-4974-b299-2e4bf73f070a",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## voice response",
+        "height": 208,
+        "width": 208,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2000,
+        288
+      ],
+      "typeVersion": 1,
+      "id": "1d461be7-2840-4c56-9e5e-d30ce6cf81cb",
+      "name": "Sticky Note5"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "chat input2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "chat input2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "chat input3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "chat input3": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Webhook2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "chat input5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "chat input5": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Switch-out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch-out": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7d54b82e-6387-4ec0-9b89-10cc35bac6d6",
+  "meta": {
+    "instanceId": "49cdcd85d6898457370ad5429325f5a45e11bece7e402d3233eae4c538f59bd8"
+  },
+  "id": "oEQhamhlyoWgUc5A",
+  "tags": []
+}
